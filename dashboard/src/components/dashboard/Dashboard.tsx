@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Users, FolderOpen, Bell, Settings, LogOut, User, Building, Plus, BarChart3, FileText, Edit, Trash2, ChevronDown } from 'lucide-react';
-import { UserData } from '../../types';
+import { Users, FolderOpen, Bell, Settings, LogOut, User, Building, Plus, BarChart3, FileText, Edit, Trash2 } from 'lucide-react';
+import { UserData, Project } from '../../types';
 import { InfoCard } from './InfoCard';
 import { Button } from '../common/Button';
 import { ProjectModal } from './ProjectModal';
@@ -18,7 +18,16 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpdateUserData }) => {
-  const { appData, addProject, updateProject, deleteProject, addTeamMember, updateTeamMember, markNotificationRead } = useAppData();
+  const {
+    appData,
+    addProject,
+    updateProject,
+    deleteProject,
+    addTeamMember,
+    updateTeamMember,
+    markNotificationRead,
+  } = useAppData();
+
   const [activeView, setActiveView] = useState<'dashboard' | 'reports' | 'team'>('dashboard');
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
@@ -29,9 +38,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
 
   // Real-time stats that update when data changes
   const stats = {
-    teamMembers: appData.teamMembers.filter(m => m.status === 'active').length,
-    activeProjects: appData.projects.filter(p => p.status === 'in-progress').length,
-    notifications: appData.notifications.filter(n => !n.read).length
+    teamMembers: appData.teamMembers.filter((m) => m.status === 'active').length,
+    activeProjects: appData.projects.filter((p) => p.status === 'in-progress').length,
+    notifications: appData.notifications.filter((n) => !n.read).length,
   };
 
   const getGreeting = () => {
@@ -45,12 +54,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
     onUpdateUserData(newUserData);
   };
 
-  const handleProjectAdd = (project: any) => {
+  const handleProjectAdd = (project: Project) => {
     addProject(project);
     setShowProjectModal(false);
   };
 
-  const handleProjectEdit = (project: any) => {
+  const handleProjectEdit = (project: Project) => {
     updateProject(project.id, project);
     setShowProjectModal(false);
     setEditingProject(null);
@@ -62,11 +71,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
     }
   };
 
-  const handleStatusChange = (projectId: string, newStatus: string) => {
-    updateProject(projectId, { status: newStatus as any });
+  const handleStatusChange = (projectId: string, newStatus: Project['status']) => {
+    updateProject(projectId, { status: newStatus });
   };
 
-  const openEditModal = (project: any) => {
+  const openEditModal = (project: Project) => {
     setEditingProject(project.id);
     setShowProjectModal(true);
   };
@@ -75,15 +84,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
     switch (activeView) {
       case 'reports':
         return (
-          <ReportsView 
-            projects={appData.projects} 
-            userData={userData} 
+          <ReportsView
+            projects={appData.projects}
+            userData={userData}
             teamMembers={appData.teamMembers}
           />
         );
       case 'team':
         return (
-          <TeamSettings 
+          <TeamSettings
             teamMembers={appData.teamMembers}
             onAddMember={addTeamMember}
             onUpdateMember={updateTeamMember}
@@ -171,9 +180,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     <FolderOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>No projects yet. Create your first project to get started!</p>
-                    <Button 
-                      variant="primary" 
-                      size="sm" 
+                    <Button
+                      variant="primary"
+                      size="sm"
                       onClick={() => setShowProjectModal(true)}
                       className="mt-4"
                     >
@@ -183,7 +192,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
                   </div>
                 ) : (
                   appData.projects.slice(0, 5).map((project) => (
-                    <div key={project.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg group hover:shadow-md transition-all duration-200">
+                    <div
+                      key={project.id}
+                      className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg group hover:shadow-md transition-all duration-200"
+                    >
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-medium text-gray-900 dark:text-white">{project.name}</h4>
@@ -209,13 +221,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
                           <div className="relative">
                             <select
                               value={project.status}
-                              onChange={(e) => handleStatusChange(project.id, e.target.value)}
-                              className={`px-2 py-1 text-xs rounded-full border-0 focus:ring-2 focus:ring-blue-500 cursor-pointer ${
-                                project.status === 'completed' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
-                                project.status === 'in-progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                                project.status === 'planning' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
-                                'bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-200'
-                              }`}
+                              onChange={(e) => handleStatusChange(project.id, e.target.value as Project['status'])}
+                              className={\`px-2 py-1 text-xs rounded-full border-0 focus:ring-2 focus:ring-blue-500 cursor-pointer \${
+                                project.status === 'completed'
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                  : project.status === 'in-progress'
+                                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                  : project.status === 'planning'
+                                  ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                  : 'bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-gray-200'
+                              }\`}
                             >
                               <option value="planning">Planning</option>
                               <option value="in-progress">In Progress</option>
@@ -223,9 +238,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
                               <option value="on-hold">On Hold</option>
                             </select>
                           </div>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {project.progress}% complete
-                          </span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{project.progress}% complete</span>
                           <span className="text-sm text-gray-500 dark:text-gray-400">
                             ${project.budget.toLocaleString()} budget
                           </span>
@@ -235,9 +248,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
                         </div>
                       </div>
                       <div className="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2 ml-4">
-                        <div 
+                        <div
                           className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{ width: `${project.progress}%` }}
+                          style={{ width: \`\${project.progress}%\` }}
                         />
                       </div>
                     </div>
@@ -293,7 +306,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
     }
   };
 
-  const currentProject = editingProject ? appData.projects.find(p => p.id === editingProject) : undefined;
+  const currentProject = editingProject ? appData.projects.find((p) => p.id === editingProject) : undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-colors duration-300">
@@ -308,54 +321,49 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
                 </div>
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
               </div>
-              
+
               <nav className="hidden md:flex space-x-4">
                 <button
                   onClick={() => setActiveView('dashboard')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeView === 'dashboard' 
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' 
+                  className={\`px-3 py-2 rounded-md text-sm font-medium transition-colors \${
+                    activeView === 'dashboard'
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                       : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-                  }`}
+                  }\`}
                 >
                   Overview
                 </button>
                 <button
                   onClick={() => setActiveView('reports')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeView === 'reports' 
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' 
+                  className={\`px-3 py-2 rounded-md text-sm font-medium transition-colors \${
+                    activeView === 'reports'
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                       : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-                  }`}
+                  }\`}
                 >
                   Reports
                 </button>
                 <button
                   onClick={() => setActiveView('team')}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeView === 'team' 
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200' 
+                  className={\`px-3 py-2 rounded-md text-sm font-medium transition-colors \${
+                    activeView === 'team'
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
                       : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
-                  }`}
+                  }\`}
                 >
                   Team
                 </button>
               </nav>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
                 <User className="w-4 h-4" />
                 <span>{userData.personal.name}</span>
               </div>
-              
+
               <div className="relative">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative"
-                >
+                <Button variant="ghost" size="sm" onClick={() => setShowNotifications(!showNotifications)} className="relative">
                   <Bell className="w-4 h-4" />
                   {stats.notifications > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
@@ -371,12 +379,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
                   />
                 )}
               </div>
-              
+
               <Button variant="ghost" size="sm" onClick={() => setShowPreferences(true)}>
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </Button>
-              
+
               <Button variant="ghost" size="sm" onClick={onLogout}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
@@ -387,9 +395,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {renderMainContent()}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{renderMainContent()}</main>
 
       {/* Modals */}
       {showProjectModal && (
@@ -414,3 +420,4 @@ export const Dashboard: React.FC<DashboardProps> = ({ userData, onLogout, onUpda
     </div>
   );
 };
+
